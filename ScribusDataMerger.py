@@ -88,10 +88,10 @@ class DataMerger:
                 scribus.gotoPage(startingPage) # Set the working page to the we want to copy objects from 
                 scribus.copyObject(selectedObject)
 
-                # self.show('Object', selectedObject)
+                # self.info('Object', selectedObject)
                 scribus.gotoPage(currentPage)
                 scribus.pasteObject()
-                # self.show('newobject: ', newobject)
+                # self.info('newobject: ', newobject)
 
             scribus.docChanged(1)
             newPageObejcts = scribus.getAllObjects()
@@ -99,8 +99,8 @@ class DataMerger:
 
             for pastedObject in newPageObejcts: # Loop through all the items on the current page
                 objType = scribus.getObjectType(pastedObject)
-                # self.show('pastedObject', pastedObject)
-                # self.show('objType', objType)
+                # self.info('pastedObject', pastedObject)
+                # self.info('objType', objType)
                 text = 'unchanged'
                 if(objType == 'TextFrame'):
                     # text = scribus.getText(pastedObject) 
@@ -117,7 +117,7 @@ class DataMerger:
         scribus.docChanged(1)
         scribus.messageBox("Merge Completed", "Merge Completed", icon=scribus.ICON_INFORMATION, button1=scribus.BUTTON_OK)
 
-    def show(self, text, var):
+    def info(self, text, var):
         """ Shorthand method for showing information in a dialog box """
         scribus.messageBox("Info", text + ": " + str(var), icon=scribus.ICON_INFORMATION, button1=scribus.BUTTON_OK)
 
