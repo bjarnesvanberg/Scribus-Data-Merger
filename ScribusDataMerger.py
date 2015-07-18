@@ -31,13 +31,12 @@
 """
 USAGE
 You must have a document open. Select a number of objects. Run the script. 
-This scribt will copy the selected objects to all subsequent pages currently
-existing in the document. No pages will be added yet.
+After selecting a file in the dialog and clicking the Run button the scribt 
+will copy the selected objects to all subsequent pages currently existing 
+in the document. No pages will be added yet.
 
 FUTURE FEATURES
 * The user should be presented with a dialog in order to control the script
-    - Select a CSV file that holds the data that should be merge into 
-      the document
     - Select how many rows should be merged into the document
     - Select starting row
 * The script should create a new page per row of data in the CSV input file
@@ -58,10 +57,19 @@ except ImportError,err:
     print "It can only be run from within Scribus."
     sys.exit(1)
 
+import Tkinter
+from Tkinter import Frame, LabelFrame, Label, Entry, Button, StringVar, OptionMenu, Checkbutton, IntVar
+import tkFileDialog
+import tkMessageBox
+
 class CONST:
     APP_NAME = 'Scribus Data Merger'
+    EMPTY = ''
 
 class DataMerger:
+    def __init__(self, dataObject):
+        self.__dataObject = dataObject
+
     def run(self):
         selCount = scribus.selectionCount()
         if selCount == 0:
@@ -117,13 +125,119 @@ class DataMerger:
         scribus.docChanged(1)
         scribus.messageBox("Merge Completed", "Merge Completed", icon=scribus.ICON_INFORMATION, button1=scribus.BUTTON_OK)
 
+
     def info(self, text, var):
         """ Shorthand method for showing information in a dialog box """
         scribus.messageBox("Info", text + ": " + str(var), icon=scribus.ICON_INFORMATION, button1=scribus.BUTTON_OK)
 
+class MergerDataObject:
+    # Data Object for transfering the settings made by the user on the UI
+    def __init__(self):
+        self.__dataSourceFile = CONST.EMPTY
+    
+    # Get
+    def getDataSourceFile(self):
+        return self.__dataSourceFile
+    
+    # Set
+    def setDataSourceFile(self, fileName):
+           self.__dataSourceFile = fileName
+        
+
+class MergerController:
+    # Controler being the bridge between UI and Logic.
+    def __init__(self, root):
+        self.__dataSourceFileEntryVariable = StringVar()
+        self.__scribusSourceFileEntryVariable = StringVar()
+        self.__outputDirectoryEntryVariable = StringVar()
+        self.__outputFileNameEntryVariable = StringVar()
+        self.__root = root
+
+    def getDataSourceFileEntryVariable(self):
+        return self.__dataSourceFileEntryVariable
+
+    def dataSourceFileEntryVariableHandler(self):
+        result = tkFileDialog.askopenfilename(title='Choose...', defaultextension='.csv', filetypes=[('CSV', '*.csv *.CSV')])
+        if result:
+            self.__dataSourceFileEntryVariable.set(result)
+
+    def createDataObject(self):
+        # Collect the settings the user has made and build the Data Object
+        result = MergerDataObject()
+        result.setDataSourceFile(self.__dataSourceFileEntryVariable.get())
+        return result
+
+    def quit(self):
+        self.__root.destroy()
+
+    def buttonCancelHandler(self):
+        self.quit()
+
+    def buttonOkHandler(self):
+        if (self.__dataSourceFileEntryVariable.get() != CONST.EMPTY): 
+            dataObject = self.createDataObject()
+            merger = DataMerger(dataObject)
+            merger.run()
+            self.quit()
+        else:
+            tkMessageBox.showerror(title='Validation failed', message='Please check if all settings have been set correctly!')
+
+
+
+class MergerDialog:
+    # The UI to configure the settings by the user
+    def __init__(self, root, ctrl):
+        self.__root = root
+        self.__ctrl = ctrl
+    
+    def show(self):
+        self.__root.title(CONST.APP_NAME)
+        mainFrame = Frame(self.__root)
+        # Configure main frame and make Dialog stretchable (to EAST and WEST)
+        top = mainFrame.winfo_toplevel()
+        top.rowconfigure(0, weight=1)
+        top.columnconfigure(0, weight=1)
+        mainFrame.rowconfigure(0, weight=1)
+        mainFrame.columnconfigure(0, weight=1)
+        mainFrame.grid(sticky='ew')
+
+        # Configure the frames to hold the controls
+        # - Frame with input settings
+        inputFrame = LabelFrame(mainFrame, text='Input Settings')
+        inputFrame.columnconfigure(1, weight=1)
+        inputFrame.grid(column=0, row=0, padx=5, pady=5, sticky='ew')
+        # - Frame with output settings
+        outputFrame = LabelFrame(mainFrame, text='Output Settings')
+        outputFrame.columnconfigure(1, weight=1)
+        outputFrame.grid(column=0, row=1, padx=5, pady=5, sticky='ew')
+        # - Frame with buttons at the bottom of the dialog
+        buttonFrame = Frame(mainFrame)
+        buttonFrame.grid(column=0, row=2, padx=5, pady=5, sticky='e')
+
+        # Controls for input
+        dataSourceFileLabel = Label(inputFrame, text='Data File:', width=15, anchor='w')
+        dataSourceFileLabel.grid(column=0, row=1, padx=5, pady=5, sticky='w')
+        dataSourceFileEntry = Entry(inputFrame, width=70, textvariable=self.__ctrl.getDataSourceFileEntryVariable())
+        dataSourceFileEntry.grid(column=1, row=1, padx=5, pady=5, sticky='ew')
+        dataSourceFileButton = Button(inputFrame, text='...', command=self.__ctrl.dataSourceFileEntryVariableHandler)
+        dataSourceFileButton.grid(column=2, row=1, padx=5, pady=5, sticky='e')
+
+        # Buttons
+        cancelButton = Button(buttonFrame, text='Cancel', width=10, command=self.__ctrl.buttonCancelHandler)
+        cancelButton.grid(column=1, row=0, padx=5, pady=5, sticky='e')
+        runButton = Button(buttonFrame, text='Run', width=10, command=self.__ctrl.buttonOkHandler)
+        runButton.grid(column=2, row=0, padx=5, pady=5, sticky='e')
+
+        # Show the dialog
+        mainFrame.grid()
+        self.__root.grid()
+        self.__root.mainloop()
+
 def main(argv):
-    merger = DataMerger()
-    merger.run()    
+    root = Tkinter.Tk()
+    ctrl = MergerController(root)
+    dlg = MergerDialog(root, ctrl)
+    dlg.show()
 
 def main_wrapper(argv):
     try:
