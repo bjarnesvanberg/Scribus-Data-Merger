@@ -88,10 +88,14 @@ class DataMerger:
             selectedObjects.append(scribus.getSelectedObject(o))
             o = o + 1
 
-        numPages = scribus.pageCount()
         startingPage = scribus.currentPage()
+        numPages = scribus.pageCount()
+        lastPage = numPages # Default value
+        if(self.__dataObject.getNumberOfLinesToMerge() != 'All'):
+            lastPage = int(self.__dataObject.getNumberOfLinesToMerge()) + startingPage
+        lastPage = min(lastPage, numPages) # This will prevent the script from trying to paste objects to non-existing pages
         currentPage = startingPage + 1
-        while (currentPage <= numPages):
+        while (currentPage <= lastPage):
             for selectedObject in selectedObjects:
                 scribus.gotoPage(startingPage) # Set the working page to the we want to copy objects from 
                 scribus.copyObject(selectedObject)
@@ -134,15 +138,21 @@ class MergerDataObject:
     # Data Object for transfering the settings made by the user on the UI
     def __init__(self):
         self.__dataSourceFile = CONST.EMPTY
+        self.__numberOfLinesToMerge = '0'
     
     # Get
     def getDataSourceFile(self):
         return self.__dataSourceFile
+
+    def getNumberOfLinesToMerge(self):
+        return self.__numberOfLinesToMerge
     
     # Set
     def setDataSourceFile(self, fileName):
-           self.__dataSourceFile = fileName
-        
+        self.__dataSourceFile = fileName
+    
+    def setNumberOfLinesToMerge(self, stringValue):
+        self.__numberOfLinesToMerge = stringValue
 
 class MergerController:
     # Controler being the bridge between UI and Logic.
@@ -151,6 +161,9 @@ class MergerController:
         self.__scribusSourceFileEntryVariable = StringVar()
         self.__outputDirectoryEntryVariable = StringVar()
         self.__outputFileNameEntryVariable = StringVar()
+        self.__linesToMerge = ["All", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+        self.__selectedLinesToMerge = StringVar()
+        self.__selectedLinesToMerge.set('All') # The default value for the dropdown box
         self.__root = root
 
     def getDataSourceFileEntryVariable(self):
@@ -165,7 +178,14 @@ class MergerController:
         # Collect the settings the user has made and build the Data Object
         result = MergerDataObject()
         result.setDataSourceFile(self.__dataSourceFileEntryVariable.get())
+        result.setNumberOfLinesToMerge(self.__selectedLinesToMerge.get())
         return result
+
+    def getSelectedNumberOfLines(self):
+        return self.__selectedLinesToMerge
+
+    def getNumerOfLinesList(self):
+        return self.__linesToMerge
 
     def quit(self):
         self.__root.destroy()
@@ -181,8 +201,6 @@ class MergerController:
             self.quit()
         else:
             tkMessageBox.showerror(title='Validation failed', message='Please check if all settings have been set correctly!')
-
-
 
 class MergerDialog:
     # The UI to configure the settings by the user
@@ -221,6 +239,13 @@ class MergerDialog:
         dataSourceFileEntry.grid(column=1, row=1, padx=5, pady=5, sticky='ew')
         dataSourceFileButton = Button(inputFrame, text='...', command=self.__ctrl.dataSourceFileEntryVariableHandler)
         dataSourceFileButton.grid(column=2, row=1, padx=5, pady=5, sticky='e')
+
+        # Controls for output
+        numberOfDataLinesToMergeLabel = Label(outputFrame, text='Number of data lines to merge into this document:', width=15, anchor='w')
+        numberOfDataLinesToMergeLabel.grid(column=0, row=2, padx=5, pady=5, sticky='w')
+        # numberOfDataLinesToMergeListBox = OptionMenu(outputFrame, self.__ctrl.getSelectedNumberOfLines(), tuple(self.__ctrl.getNumerOfLinesList())) # TODO: implement these two functions in the controller
+        numberOfDataLinesToMergeListBox = apply(OptionMenu, (outputFrame, self.__ctrl.getSelectedNumberOfLines()) + tuple(self.__ctrl.getNumerOfLinesList()))
+        numberOfDataLinesToMergeListBox.grid(column=1, row=2, padx=5, pady=5, sticky='w')
 
         # Buttons
         cancelButton = Button(buttonFrame, text='Cancel', width=10, command=self.__ctrl.buttonCancelHandler)
