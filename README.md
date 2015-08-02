@@ -2,12 +2,12 @@
 Data merge tool that will help you populate a scribus file with data from a CSV file.
 
 ## Status
-Currently the tool will only copy selected objects to subsequent pages in the same document.
+Currently the tool will only copy selected objects to subsequent pages in the same document. You can select how many pages it will be dublicated to in the dialog.
 
 ## Usage
 Before you run the script you must have a document open and at least one object selected. 
 
-In the dialog select a file from the file selector and click the *Run* button. *Currently the selected file does not have any impact on the behavior of the script but it is still required to fill out.* After clicking *Run* button the script will copy the selected elements to all existing subsequent pages of the document.
+In the dialog select a file from the file selector and click the *Run* button. *Currently the selected file does not have any impact on the behavior of the script but it is still required to fill out.* You can choose how many pages the selection will be copied to. After clicking *Run* button the script will copy the selected elements to the chosen number of existing subsequent pages of the document.
 
 ## Setup
 There are two ways to get the script to work:
