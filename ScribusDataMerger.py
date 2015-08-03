@@ -32,12 +32,11 @@
 USAGE
 You must have a document open. Select a number of objects. Run the script. 
 After selecting a file in the dialog and clicking the Run button the scribt 
-will copy the selected objects to all subsequent pages currently existing 
-in the document. No pages will be added yet.
+will copy the selected objects to selected number of subsequent pages 
+currently existing in the document. No pages will be added yet.
 
 FUTURE FEATURES
 * The user should be presented with a dialog in order to control the script
-    - Select how many rows should be merged into the document
     - Select starting row
 * The script should create a new page per row of data in the CSV input file
 * The script should replace any variables %VAR_name% with the content of 
