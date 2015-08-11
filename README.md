@@ -2,12 +2,18 @@
 Data merge tool that will help you populate a scribus file with data from a CSV file.
 
 ## Status
-Currently the tool will only copy selected objects to subsequent pages in the same document. You can select how many pages it will be dublicated to in the dialog.
+Currently the tool will only populate existing pages in the same document with data from the CSV file. You can select how many pages will be populated in the dialog.
 
 ## Usage
 Before you run the script you must have a document open and at least one object selected. 
 
-In the dialog select a file from the file selector and click the *Run* button. *Currently the selected file does not have any impact on the behavior of the script but it is still required to fill out.* You can choose how many pages the selection will be copied to. After clicking *Run* button the script will copy the selected elements to the chosen number of existing subsequent pages of the document.
+In the dialog select a CSV file from the file selector, select how many pages/rows to merge and click the *Run* button. You can choose how many pages the selection will be copied to (this is also the number of rows that will be read). After clicking *Run* button the script will copy the selected elements to the chosen number of existing subsequent pages of the document and replace variables with data from the CSV file.
+
+### Structure of the Input File
+The input file selected in the dialog must be a CSV file with the first row containing the name of each column. These header names are used to identify what cell to use when replacing text in the document.
+
+### Variables
+In any text frame you can specify variables or placeholders like this: `%VAR_employee%`. When the script runs it will replace the variable with the *content* of the cell with header name 'employee'.
 
 ## Setup
 There are two ways to get the script to work:
