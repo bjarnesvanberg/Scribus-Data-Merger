@@ -32,12 +32,13 @@
 USAGE
 You must have a document open. Select a number of objects. Run the script. 
 After selecting a file in the dialog and clicking the Run button the script 
-will copy the selected objects to selected number of subsequent pages 
-currently existing in the document and replacing text like  %VAR_name% with 
-the content of a cell with the header 'name'. No pages will be added yet.
+will copy the selected objects and merge it with data from the selected 
+number of rows in the data file. It will replace text like  %VAR_name% 
+with the content of a cell with the header 'name'. 
 
 FUTURE FEATURES
-* The script should create a new page per row of data in the CSV input file
+* It would be nice to update the status bar and progress indicator while 
+  the script is working.
 
 """
 
@@ -90,22 +91,24 @@ class DataMerger:
             o = o + 1
 
         startingPage = scribus.currentPage()
-        numPages = scribus.pageCount()
-        lastPage = numPages # Default value
+        lastRow = len(csvData)
         if(self.__dataObject.getNumberOfLinesToMerge() != 'All'):
-            lastPage = int(self.__dataObject.getNumberOfLinesToMerge()) + startingPage
-        lastPage = min(lastPage, numPages) # This will prevent the script from trying to paste objects to non-existing pages
-        currentPage = startingPage + 1
+            lastRow = int(self.__dataObject.getNumberOfLinesToMerge())
+        lastRow = min(lastRow, len(csvData)) # This will prevent the script from trying to merge data from non-existing rows in the data file
+        currentPage = scribus.currentPage()
         rowNumber = 0
-        while (currentPage <= lastPage):
+        insertPageBeforeThis = -1
+        while (rowNumber < lastRow):
+            if(scribus.pageCount() > currentPage):
+                insertPageBeforeThis = currentPage + 1
+            scribus.newPage(insertPageBeforeThis) # Inserts a page before the page given as an argument
+            currentPage = currentPage + 1
+
             for selectedObject in selectedObjects: # Loop through the names of all the selected objects
                 scribus.gotoPage(startingPage) # Set the working page to the one we want to copy objects from 
                 scribus.copyObject(selectedObject)
-
-                # self.info('Object', selectedObject)
                 scribus.gotoPage(currentPage)
                 scribus.pasteObject() # Paste the copied object on the new page
-                # self.info('newobject: ', newobject)
 
             scribus.docChanged(1)
             scribus.gotoPage(currentPage) # Make sure ware are on the current page before we call getAllObjects()
@@ -113,11 +116,8 @@ class DataMerger:
 
             for pastedObject in newPageObejcts: # Loop through all the items on the current page
                 objType = scribus.getObjectType(pastedObject)
-                # self.info('pastedObject', pastedObject)
-                # self.info('objType', objType)
-                text = 'unchanged'
+                text = CONST.EMPTY
                 if(objType == 'TextFrame'):
-                    # text = scribus.getText(pastedObject) 
                     text = scribus.getAllText(pastedObject) # This should have used getText but getText does not return the text values of just pasted objects
                     text = self.replaceText(csvData[rowNumber], text)
                     scribus.setText(text, pastedObject)
@@ -127,7 +127,6 @@ class DataMerger:
                     # Todo: Find out if it is possible to replace text in the ImageFile property
                           
             rowNumber = rowNumber + 1
-            currentPage = currentPage + 1
      
         scribus.setRedraw(1)
         scribus.docChanged(1)
@@ -142,7 +141,8 @@ class DataMerger:
         # Read CSV file and load the first line into the headerRow list.
         # Then return  2-dimensional list containing the rest of the data
         csvFile = self.__dataObject.getDataSourceFile()
-        reader = csv.reader(file(csvFile))
+        f = file(csvFile)
+        reader = csv.reader(f)
         result = []
         isHeaderRow = CONST.TRUE
         for row in reader:
@@ -155,6 +155,7 @@ class DataMerger:
                 for col in row:
                     rowlist.append(col)
                 result.append(rowlist)
+        f.close()
         return result
 
     def replaceText(self, dataRow, inputText):
@@ -273,7 +274,7 @@ class MergerDialog:
         dataSourceFileButton.grid(column=2, row=1, padx=5, pady=5, sticky='e')
 
         # Controls for output
-        numberOfDataLinesToMergeLabel = Label(outputFrame, text='Number of data lines to merge into this document:', width=15, anchor='w')
+        numberOfDataLinesToMergeLabel = Label(outputFrame, text='Number of rows to merge into this document:', width=35, anchor='w')
         numberOfDataLinesToMergeLabel.grid(column=0, row=2, padx=5, pady=5, sticky='w')
         # numberOfDataLinesToMergeListBox = OptionMenu(outputFrame, self.__ctrl.getSelectedNumberOfLines(), tuple(self.__ctrl.getNumerOfLinesList())) # TODO: implement these two functions in the controller
         numberOfDataLinesToMergeListBox = apply(OptionMenu, (outputFrame, self.__ctrl.getSelectedNumberOfLines()) + tuple(self.__ctrl.getNumerOfLinesList()))

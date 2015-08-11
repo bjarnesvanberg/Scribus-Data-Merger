@@ -2,18 +2,18 @@
 Data merge tool that will help you populate a scribus file with data from a CSV file.
 
 ## Status
-Currently the tool will only populate existing pages in the same document with data from the CSV file. You can select how many pages will be populated in the dialog.
+This is the first working version of the script. It will load a CSV file, create a new page pr. row in the CSV file and replace variables in text frames with data from the CSV file.
 
 ## Usage
-Before you run the script you must have a document open and at least one object selected. 
+Before you run the script you must have a document open and at least one (text frame) object selected. 
 
-In the dialog select a CSV file from the file selector, select how many pages/rows to merge and click the *Run* button. You can choose how many pages the selection will be copied to (this is also the number of rows that will be read). After clicking *Run* button the script will copy the selected elements to the chosen number of existing subsequent pages of the document and replace variables with data from the CSV file.
+In the dialog select a CSV file from the file selector, select how many pages/rows to merge and click the *Run* button. The script will then create a new page for each row read from the CSV file and copy the selected elements to those pages and replace variables with data from the CSV file.
 
 ### Structure of the Input File
 The input file selected in the dialog must be a CSV file with the first row containing the name of each column. These header names are used to identify what cell to use when replacing text in the document.
 
 ### Variables
-In any text frame you can specify variables or placeholders like this: `%VAR_employee%`. When the script runs it will replace the variable with the *content* of the cell with header name 'employee'.
+In any text frame you can specify variables (placeholders) like this: `%VAR_employee%`. When the script runs it will replace the variable with the *content* of the cell with header name 'employee'.
 
 ## Setup
 There are two ways to get the script to work:
