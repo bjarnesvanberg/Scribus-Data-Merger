@@ -1,8 +1,10 @@
 # Scribus-Data-Merger
-Data merge tool that will help you populate a scribus file with data from a CSV file.
+Data merge tool that will help you populate a [Scribus](http://www.scribus.net/) file with data from a CSV file.
 
 ## Status
 This is the first working version of the script. It will load a CSV file, create a new page pr. row in the CSV file and replace variables in text frames with data from the CSV file.
+
+*Note that this only works with Scribus version 1.5.0.* If you need this functionality in Scribus version 1.4.X you should take a look at [ScribusGenerator](https://github.com/berteh/ScribusGenerator). ScribusGenerator offers slightly different functionality.
 
 ## Usage
 Before you run the script you must have a document open and at least one (text frame) object selected. 
